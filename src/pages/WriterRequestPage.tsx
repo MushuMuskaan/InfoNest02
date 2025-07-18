@@ -74,6 +74,16 @@ export const WriterRequestPage: React.FC = () => {
   } = useAuth();
   const navigate = useNavigate();
 
+  // Debug logging
+  useEffect(() => {
+    console.log("WriterRequestPage mounted", {
+      isAuthenticated,
+      isAdmin,
+      userProfile: userProfile?.email,
+      authLoading
+    });
+  }, [isAuthenticated, isAdmin, userProfile, authLoading]);
+
   // State management
   const [currentUserRequest, setCurrentUserRequest] =
     useState<CombinedWriterRequest | null>(null);

@@ -210,14 +210,6 @@ function App() {
 
                 {/* Admin only routes */}
                 <Route
-                  path="admin"
-                  element={
-                    <AdminRoute>
-                      <AdminPanel />
-                    </AdminRoute>
-                  }
-                />
-                <Route
                   path="personal-dashboard"
                   element={
                     <AdminRoute>
