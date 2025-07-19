@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../contexts/AuthContext";
 
 import {
   BookOpen,
@@ -18,6 +18,7 @@ import { Article } from "../lib/articles";
 import { ArticleCard } from "../components/ArticleCard";
 import { onSnapshot, collection, query, where } from "firebase/firestore";
 import { firestore } from "../lib/firebase";
+import { debounce, DataCache, PerformanceMonitor } from "../lib/performanceOptimizer";
 
 interface AdminDashboardData {
   publishedArticles: Article[];
@@ -47,6 +48,10 @@ export const AdminDashboard: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedTag, setSelectedTag] = useState<string>("");
 
+  // Debounced search function
+  const debouncedSearch = debounce((query: string) => {
+    setSearchQuery(query);
+  }, 300);
   // Listen for cross-component updates
   useEffect(() => {
     const handleWriterRequestProcessed = (event: CustomEvent) => {
@@ -71,6 +76,14 @@ export const AdminDashboard: React.FC = () => {
   useEffect(() => {
     if (!userProfile) return;
 
+    PerformanceMonitor.startMeasurement('adminDashboard_dataLoad');
+    
+    // Try to get cached data first
+    const cachedData = DataCache.get<AdminDashboardData>('adminDashboard_data');
+    if (cachedData) {
+      setDashboardData(cachedData);
+      setLoading(false);
+    }
     // Articles subscription
     const articlesQuery = query(
       collection(firestore, "articles"),
@@ -158,7 +171,7 @@ export const AdminDashboard: React.FC = () => {
             const totalPendingRequests =
               legacyPendingRequests + newSystemPendingRequests;
 
-            setDashboardData({
+            const newData = {
               publishedArticles: articles,
               totalUsers,
               pendingWriterRequests: totalPendingRequests,
@@ -173,8 +186,12 @@ export const AdminDashboard: React.FC = () => {
                 totalCategories: categoriesSet.size,
                 totalTags: tagsMap.size,
               },
-            });
+            };
+            
+            setDashboardData(newData);
+            DataCache.set('adminDashboard_data', newData, 2 * 60 * 1000); // Cache for 2 minutes
             setLoading(false);
+            PerformanceMonitor.endMeasurement('adminDashboard_dataLoad');
           }
         );
 
@@ -220,7 +237,7 @@ export const AdminDashboard: React.FC = () => {
                 type="text"
                 placeholder="Search articles..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => debouncedSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>

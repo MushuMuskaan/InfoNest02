@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../contexts/AuthContext";
 import {
   BookOpen,
   Star,
@@ -19,6 +19,7 @@ import { getPublishedArticles, Article } from "../lib/articles";
 import { ArticleCard } from "../components/ArticleCard";
 import { onSnapshot, collection, query, where } from "firebase/firestore";
 import { firestore } from "../lib/firebase";
+import { debounce, DataCache, PerformanceMonitor } from "../lib/performanceOptimizer";
 
 interface DashboardData {
   publishedArticles: Article[];
@@ -39,10 +40,22 @@ export const UserDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedTag, setSelectedTag] = useState<string>("");
 
+  // Debounced search function
+  const debouncedSearch = debounce((query: string) => {
+    setSearchQuery(query);
+  }, 300);
   // Load dashboard data with real-time updates
   useEffect(() => {
     if (!userProfile) return;
 
+    PerformanceMonitor.startMeasurement('userDashboard_dataLoad');
+    
+    // Try to get cached data first
+    const cachedData = DataCache.get<DashboardData>('userDashboard_data');
+    if (cachedData) {
+      setDashboardData(cachedData);
+      setLoading(false);
+    }
     const articlesQuery = query(
       collection(firestore, "articles"),
       where("status", "==", "published")
@@ -83,13 +96,17 @@ export const UserDashboard: React.FC = () => {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      setDashboardData({
+      const newData = {
         publishedArticles: articles,
         availableCategories,
         recentArticles,
         topTags,
-      });
+      };
+      
+      setDashboardData(newData);
+      DataCache.set('userDashboard_data', newData, 2 * 60 * 1000); // Cache for 2 minutes
       setLoading(false);
+      PerformanceMonitor.endMeasurement('userDashboard_dataLoad');
     });
 
     return () => unsubscribe();
@@ -99,6 +116,7 @@ export const UserDashboard: React.FC = () => {
   useEffect(() => {
     if (!dashboardData) return;
 
+    PerformanceMonitor.startMeasurement('userDashboard_filtering');
     let filtered = dashboardData.publishedArticles;
 
     // Filter by search query
@@ -127,6 +145,7 @@ export const UserDashboard: React.FC = () => {
     }
 
     setFilteredArticles(filtered.slice(0, 6));
+    PerformanceMonitor.endMeasurement('userDashboard_filtering');
   }, [dashboardData, selectedCategory, searchQuery, selectedTag]);
 
   if (loading) {
@@ -162,7 +181,7 @@ export const UserDashboard: React.FC = () => {
                 type="text"
                 placeholder="Search articles..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => debouncedSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
             </div>

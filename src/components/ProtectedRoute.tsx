@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { AlertTriangle, Shield, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,16 +19,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   fallbackPath = '/dashboard',
   showError = true
 }) => {
-  const { userProfile, loading, isAuthenticated, hasRole, hasAnyRole } = useAuth();
+  const { userProfile, loading, isAuthenticated, hasRole, hasAnyRole, permissions } = useAuth();
   const location = useLocation();
 
-  // Show loading while checking authentication
+  // Show loading while checking authentication and permissions
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600">Verifying permissions...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -39,19 +39,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Wait for userProfile to be loaded before checking roles
-  if (!userProfile) {
+  // Wait for userProfile and permissions to be loaded before checking roles
+  if (!userProfile || !permissions) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600">Loading user profile...</p>
+          <p className="text-gray-600">Loading permissions...</p>
         </div>
       </div>
     );
   }
 
-  // Check role requirements
+  // Check role requirements using cached permissions
   let hasRequiredRole = true;
   
   if (requiredRole) {

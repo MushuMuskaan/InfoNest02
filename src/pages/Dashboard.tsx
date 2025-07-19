@@ -1,11 +1,11 @@
-﻿import React from "react";
-import { useAuth } from "../hooks/useAuth";
+import React from "react";
+import { useAuth } from "../contexts/AuthContext";
 import { UserDashboard } from "./UserDashboard";
 import { AdminDashboard } from "./AdminDashboard";
 import { InfoWriterDashboard } from "./InfoWriterDashboard";
 
 export const Dashboard: React.FC = () => {
-  const { userProfile, isAdmin, isInfoWriter, isUser, loading } = useAuth();
+  const { userProfile, isAdmin, isInfoWriter, isUser, loading, getDashboardRoute } = useAuth();
 
   if (loading) {
     return (

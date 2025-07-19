@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom"; // ✅ Fix: add Outlet here
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../contexts/AuthContext";
 import { signOut } from "../lib/auth";
 import { RoleBadge, PermissionGate } from "./ProtectedRoute";
 import {
@@ -17,7 +17,7 @@ import toast from "react-hot-toast";
 import { NotificationDropdown } from "./NotificationDropdown";
 
 export const Layout: React.FC = () => {
-  const { userProfile, isAuthenticated, isInfoWriter, isAdmin } = useAuth();
+  const { userProfile, isAuthenticated, isInfoWriter, isAdmin, canCreateArticles, canAccessAdmin } = useAuth();
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -122,7 +122,7 @@ export const Layout: React.FC = () => {
                       <Shield className="h-4 w-4" />
                       <span>Dashboard</span>
                     </Link>
-                    {isAdmin && (
+                    {canAccessAdmin && (
                       <Link
                         to="/personal-dashboard"
                         onClick={() => setIsDropdownOpen(false)}
@@ -132,7 +132,7 @@ export const Layout: React.FC = () => {
                         <span>Personal Dashboard</span>
                       </Link>
                     )}
-                    {isInfoWriter && !isAdmin && (
+                    {canCreateArticles && !canAccessAdmin && (
                       <Link
                         to="/article/new"
                         onClick={() => setIsDropdownOpen(false)}
