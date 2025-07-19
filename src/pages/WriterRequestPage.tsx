@@ -220,13 +220,13 @@ export const WriterRequestPage: React.FC = () => {
 
   // Handle authentication redirect in useEffect
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate("/auth");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, authLoading]);
 
   // Early return if not authenticated
-  if (!isAuthenticated) {
+  if (!authLoading && !isAuthenticated) {
     return null;
   }
 

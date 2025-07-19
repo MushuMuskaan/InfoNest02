@@ -34,15 +34,6 @@ export const useAuth = () => {
 
       if (profileSnap.exists()) {
         const data = profileSnap.data();
-        console.log("🔄 Manual profile refresh:", {
-          firestoreDisplayName: data.displayName,
-          authDisplayName: currentUser.displayName,
-          finalDisplayName:
-            data.displayName ||
-            currentUser.displayName ||
-            currentUser.email?.split("@")[0] ||
-            "",
-        });
 
         setUserProfile({
           uid: currentUser.uid,
@@ -76,15 +67,6 @@ export const useAuth = () => {
 
       if (profileSnap.exists()) {
         const data = profileSnap.data();
-        console.log("🔄 Initial profile load:", {
-          firestoreDisplayName: data.displayName,
-          authDisplayName: firebaseUser.displayName,
-          finalDisplayName:
-            data.displayName ||
-            firebaseUser.displayName ||
-            firebaseUser.email?.split("@")[0] ||
-            "",
-        });
 
         setUserProfile({
           uid: firebaseUser.uid,
@@ -137,15 +119,6 @@ export const useAuth = () => {
     const unsubscribe = onSnapshot(profileRef, (doc) => {
       if (doc.exists()) {
         const data = doc.data();
-        console.log("🔄 Real-time profile update detected:", {
-          firestoreDisplayName: data.displayName,
-          authDisplayName: user.displayName,
-          finalDisplayName:
-            data.displayName ||
-            user.displayName ||
-            user.email?.split("@")[0] ||
-            "",
-        });
 
         setUserProfile({
           uid: user.uid,

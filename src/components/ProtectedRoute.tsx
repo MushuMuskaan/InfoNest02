@@ -26,7 +26,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Verifying permissions...</p>
+        </div>
       </div>
     );
   }
@@ -34,6 +37,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Redirect to auth if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Wait for userProfile to be loaded before checking roles
+  if (!userProfile) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-gray-600">Loading user profile...</p>
+        </div>
+      </div>
+    );
   }
 
   // Check role requirements

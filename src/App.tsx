@@ -126,14 +126,6 @@ function App() {
                   }
                 />
                 <Route
-                  path="search"
-                  element={
-                    <ProtectedRoute requiredRoles={["infowriter", "admin"]}>
-                      <SearchPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path="article/:id"
                   element={
                     <UserRoute>
@@ -184,6 +176,14 @@ function App() {
 
                 {/* InfoWriter and Admin only routes */}
                 <Route
+                  path="search"
+                  element={
+                    <ProtectedRoute requiredRoles={["infowriter", "admin"]}>
+                      <SearchPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="article/new"
                   element={
                     <InfoWriterRoute>
@@ -202,9 +202,9 @@ function App() {
                 <Route
                   path="my-articles"
                   element={
-                    <ProtectedRoute requiredRole="infowriter">
+                    <InfoWriterRoute>
                       <MyArticles />
-                    </ProtectedRoute>
+                    </InfoWriterRoute>
                   }
                 />
 
@@ -214,6 +214,14 @@ function App() {
                   element={
                     <AdminRoute>
                       <PersonalDashboard />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="admin"
+                  element={
+                    <AdminRoute>
+                      <AdminPanel />
                     </AdminRoute>
                   }
                 />
